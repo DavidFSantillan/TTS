@@ -71,12 +71,16 @@ requirements_all = requirements_dev + requirements_notebooks + requirements_ja
 with open("README.md", "r", encoding="utf-8") as readme_file:
     README = readme_file.read()
 
-exts = [
-    Extension(
-        name="TTS.tts.utils.monotonic_align.core",
-        sources=["TTS/tts/utils/monotonic_align/core.pyx"],
-    )
-]
+build_mas_extension = os.environ.get("TTS_BUILD_MAS", "1") == "1" and os.name != "nt"
+
+exts = []
+if build_mas_extension:
+    exts = [
+        Extension(
+            name="TTS.tts.utils.monotonic_align.core",
+            sources=["TTS/tts/utils/monotonic_align/core.pyx"],
+        )
+    ]
 setup(
     name="TTS",
     version=version,
@@ -89,7 +93,7 @@ setup(
     license="MPL-2.0",
     # cython
     include_dirs=numpy.get_include(),
-    ext_modules=cythonize(exts, language_level=3),
+    ext_modules=cythonize(exts, language_level=3) if exts else [],
     # ext_modules=find_cython_extensions(),
     # package
     include_package_data=True,

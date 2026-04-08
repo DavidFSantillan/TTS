@@ -88,23 +88,31 @@ class TTS(nn.Module):
 
     @property
     def is_multi_speaker(self):
-        if hasattr(self.synthesizer.tts_model, "speaker_manager") and self.synthesizer.tts_model.speaker_manager:
-            return self.synthesizer.tts_model.speaker_manager.num_speakers > 1
-        return False
+        try:
+            if hasattr(self.synthesizer.tts_model, "speaker_manager") and self.synthesizer.tts_model.speaker_manager:
+                return self.synthesizer.tts_model.speaker_manager.num_speakers > 1
+            return False
+        except (AttributeError, TypeError):
+            # If synthesizer or tts_model don't exist or cause issues, assume single-speaker
+            return False
 
     @property
     def is_multi_lingual(self):
         # Not sure what sets this to None, but applied a fix to prevent crashing.
-        if (
-            isinstance(self.model_name, str)
-            and "xtts" in self.model_name
-            or self.config
-            and ("xtts" in self.config.model or len(self.config.languages) > 1)
-        ):
-            return True
-        if hasattr(self.synthesizer.tts_model, "language_manager") and self.synthesizer.tts_model.language_manager:
-            return self.synthesizer.tts_model.language_manager.num_languages > 1
-        return False
+        try:
+            if (
+                isinstance(self.model_name, str)
+                and "xtts" in self.model_name
+                or self.config
+                and ("xtts" in self.config.model or len(self.config.languages) > 1)
+            ):
+                return True
+            if hasattr(self.synthesizer.tts_model, "language_manager") and self.synthesizer.tts_model.language_manager:
+                return self.synthesizer.tts_model.language_manager.num_languages > 1
+            return False
+        except (AttributeError, TypeError):
+            # If synthesizer or tts_model don't exist or cause issues, assume single-lingual
+            return False
 
     @property
     def speakers(self):
